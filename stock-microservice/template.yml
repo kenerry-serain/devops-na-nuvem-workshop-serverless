@@ -1,0 +1,120 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AWS SAM template for Stock Api
+
+Parameters:
+  HostedZoneId:
+    Type: String
+  CertificateArn:
+    Type: String
+  TagEnvironment:
+    Type: String
+    Default: production
+    Description: Environment Type
+  TagApplication:
+    Type: String
+    Default: stock
+    Description: Application Type
+
+Resources:
+
+  DynamoTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PointInTimeRecoverySpecification: 
+        PointInTimeRecoveryEnabled: true
+      PrimaryKey:
+        Name: Id
+        Type: String
+      SSESpecification:
+        SSEEnabled: true
+      TableName: StocksTable
+      Tags:
+        Environment: !Ref TagEnvironment
+        Application: !Ref TagApplication
+
+  ApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: production 
+      # Domain:
+        # DomainName: backend.devopsnanuvemweek.com
+        # CertificateArn: !Ref CertificateArn
+        # Route53:
+        #   HostedZoneId: !Ref HostedZoneId
+        # Não precisa de base path
+        # BasePath:
+        # - stocks
+      Tags:
+        Environment: !Ref TagEnvironment
+        Application: !Ref TagApplication
+
+  Route53ApiGatewayDomain:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: backend.devopsnanuvemweek.com
+      Type: A
+      AliasTarget:
+        #Buscar por return values
+        DNSName: !GetAtt ApiGatewayDomain.DistributionDomainName
+        HostedZoneId: !GetAtt ApiGatewayDomain.DistributionHostedZoneId
+
+  ApiGatewayDomain:
+    Type: AWS::ApiGateway::DomainName
+    Properties:
+      CertificateArn: !Ref CertificateArn
+      DomainName: backend.devopsnanuvemweek.com
+      SecurityPolicy: TLS_1_2
+      EndpointConfiguration: 
+        Types: 
+        - EDGE
+
+  ApiGatewayBasePathMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    Properties:
+      BasePath: stocks
+      DomainName: backend.devopsnanuvemweek.com
+      RestApiId: !Ref ApiGateway
+      Stage: !Ref ApiGateway.Stage
+
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: StockApi
+      Runtime: dotnet8
+      Handler: StockApi
+      Timeout: 30
+      Environment:
+        Variables:
+          DYNAMO_TABLE_NAME: !Ref DynamoTable
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+      Events:
+        Stocks:
+          Type: Api
+          Properties:
+            Path: /stocks
+            Method: ANY
+            RestApiId: !Ref ApiGateway
+        StocksById:
+          Type: Api
+          Properties:
+            Path: /stocks/{proxy+}
+            Method: ANY
+            RestApiId: !Ref ApiGateway
+      Tags:
+        Environment: !Ref TagEnvironment
+        Application: !Ref TagApplication
+
+Outputs:
+  ApiUrl:
+    Description: "API Gateway endpoint URL for Prod environment"
+    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/production/stocks"
+  ApiFunction:
+    Description: "API Lambda Function ARN"
+    Value: !GetAtt ApiFunction.Arn
+  DynamoTable:
+    Description: "DynamoDB Table ARN"
+    Value: !GetAtt DynamoTable.Arn

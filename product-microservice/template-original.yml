@@ -1,0 +1,69 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  LambdaAuthorizerArn:
+    Type: String
+    Description: ARN of the Lambda Authorizer
+
+Resources:
+  ProductsApi:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: ProductsApi
+      Handler: handler.main
+      Runtime: nodejs18.x
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+      Environment:
+        Variables:
+          DYNAMO_TABLE_NAME: !Ref ProductsTable
+      Events:
+        Products:
+          Type: Api
+          Properties:
+            Path: /products
+            Method: ANY
+            RestApiId: !Ref ApiGateway
+        ProductById:
+          Type: Api
+          Properties:
+            Path: /products/{proxy+}
+            Method: ANY
+            RestApiId: !Ref ApiGateway
+
+  ApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: ProductsApiGateway
+      StageName: Prod
+      Auth:
+        DefaultAuthorizer: LambdaRequestAuthorizer
+        Authorizers:
+          LambdaRequestAuthorizer:
+            FunctionArn: !Ref LambdaAuthorizerArn
+            Identity:
+              Headers:
+                - Authorization
+
+  ProductsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ProductsTable
+      AttributeDefinitions:
+        - AttributeName: Id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: Id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+
+Outputs:
+  ApiUrl:
+    Description: "API Gateway endpoint URL for the Product Service"
+    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/Prod/products"
