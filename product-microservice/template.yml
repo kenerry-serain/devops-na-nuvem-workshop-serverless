@@ -9,8 +9,11 @@ Parameters:
     Description: Environment Type
   TagApplication:
     Type: String
-    Default: Product
+    Default: product
     Description: Application Type
+  LambdaAuthorizerFunctionArn:
+    Type: String
+    Description: Lambda Authorizer Function ARN
 
 Resources:
 
@@ -33,17 +36,24 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: production 
-      Domain:
-        # DomainName: backend.devopsnanuvemweek.com
-        # CertificateArn: !Ref CertificateArn
-        # Route53:
-        #   HostedZoneId: !Ref HostedZoneId
-        # Não precisa de base path
-        BasePath:
-        - products
+      Auth:
+        DefaultAuthorizer: LambdaAuthorizer
+        Authorizers:
+          LambdaAuthorizer:
+            FunctionArn: !Ref LambdaAuthorizerFunctionArn
+            IdentitySource: method.request.header.Authorization
+            Type: REQUEST
       Tags:
         Environment: !Ref TagEnvironment
         Application: !Ref TagApplication
+
+  ApiGatewayBasePathMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    Properties:
+      BasePath: products
+      DomainName: backend.devopsnanuvemweek.com
+      RestApiId: !Ref ApiGateway
+      Stage: !Ref ApiGateway.Stage
 
   ApiFunction:
     Type: AWS::Serverless::Function
@@ -62,13 +72,13 @@ Resources:
         Products:
           Type: Api
           Properties:
-            Path: /Products
+            Path: /products
             Method: ANY
             RestApiId: !Ref ApiGateway
         ProductsById:
           Type: Api
           Properties:
-            Path: /Products/{proxy+}
+            Path: /products/{proxy+}
             Method: ANY
             RestApiId: !Ref ApiGateway
       Tags:
@@ -78,7 +88,7 @@ Resources:
 Outputs:
   ApiUrl:
     Description: "API Gateway endpoint URL for Prod environment"
-    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/production/Products"
+    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/production/products"
   ApiFunction:
     Description: "API Lambda Function ARN"
     Value: !GetAtt ApiFunction.Arn

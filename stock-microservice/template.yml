@@ -15,6 +15,9 @@ Parameters:
     Type: String
     Default: stock
     Description: Application Type
+  LambdaAuthorizerFunctionArn:
+    Type: String
+    Description: Lambda Authorizer Function ARN
 
 Resources:
 
@@ -37,14 +40,13 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: production 
-      # Domain:
-        # DomainName: backend.devopsnanuvemweek.com
-        # CertificateArn: !Ref CertificateArn
-        # Route53:
-        #   HostedZoneId: !Ref HostedZoneId
-        # Não precisa de base path
-        # BasePath:
-        # - stocks
+      Auth:
+        DefaultAuthorizer: LambdaAuthorizer
+        Authorizers:
+          LambdaAuthorizer:
+            FunctionArn: !Ref LambdaAuthorizerFunctionArn
+            IdentitySource: method.request.header.Authorization
+            Type: REQUEST
       Tags:
         Environment: !Ref TagEnvironment
         Application: !Ref TagApplication

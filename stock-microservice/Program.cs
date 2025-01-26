@@ -14,7 +14,8 @@ builder.Services.AddScoped<IAmazonDynamoDB, AmazonDynamoDBClient>();
 builder.Services.AddAWSLambdaHosting(LambdaEventSource.RestApi);
 
 var app = builder.Build();
-
+app.UsePathBase("/stocks");
+app.UseRouting();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

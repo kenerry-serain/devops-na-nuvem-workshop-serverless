@@ -2,52 +2,45 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
 Resources:
-  AuthorizerFunction:
+
+  LambdaAuthorizerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: AuthorizerFunction
-      Handler: authorizer.lambda_handler
+      FunctionName: LambdaAuthorizerFunction
       Runtime: python3.9
-      Policies:
-        - AWSLambdaBasicExecutionRole
-        - AmazonDynamoDBFullAccess
+      Handler: authorizer.lambda_handler
+      Timeout: 30
       Environment:
         Variables:
-          COGNITO_ISSUER: !Sub https://cognito-idp.${AWS::Region}.amazonaws.com/${CognitoUserPool}
-          COGNITO_REGION: !Ref AWS::Region
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          COGNITO_REGION: !Ref AWS::Region
+          COGNITO_ISSUER: !Sub https://cognito-idp.${AWS::Region}.amazonaws.com/${CognitoUserPool}
+      Policies:
+        - AWSLambdaBasicExecutionRole
 
   CognitoUserPool:
     Type: AWS::Cognito::UserPool
     Properties:
-      UserPoolName: MyCognitoUserPool
-      UsernameAttributes:
-        - email
-      AutoVerifiedAttributes:
-        - email
+      UserPoolName: cognito-user-pool
       Policies:
         PasswordPolicy:
           MinimumLength: 8
-          RequireUppercase: true
-          RequireLowercase: true
-          RequireNumbers: true
-          RequireSymbols: false
+      UsernameAttributes:
+        - email
       Schema:
-        - Name: email
-          Required: true
-          Mutable: false
-
+        - AttributeDataType: String
+          Name: email
+          Required: false
+  
   CognitoUserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
-      ClientName: MyUserPoolClient
       UserPoolId: !Ref CognitoUserPool
-      GenerateSecret: false  # Set to true if you need a secret key
+      ClientName: cognito-client
+      GenerateSecret: false
       ExplicitAuthFlows:
         - ALLOW_USER_PASSWORD_AUTH
         - ALLOW_REFRESH_TOKEN_AUTH
-        - ALLOW_USER_SRP_AUTH
-      PreventUserExistenceErrors: ENABLED
 
 Outputs:
   UserPoolId:
