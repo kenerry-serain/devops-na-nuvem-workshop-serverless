@@ -1,27 +1,39 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
+Parameters:
+  TagEnvironment: 
+    Type: String
+    Default: production
+    Description: Environment Type.
+  TagProject:
+    Type: String
+    Default: devops-na-nuvem-serverless-workshop
+    Description: Project Name.
+
 Resources:
 
-  LambdaAuthorizerFunction:
+  ApiFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: LambdaAuthorizerFunction
-      Runtime: python3.9
+      Runtime: python3.12
       Handler: authorizer.lambda_handler
       Timeout: 30
+      Policies:
+      - AWSLambdaBasicExecutionRole
       Environment:
         Variables:
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           COGNITO_REGION: !Ref AWS::Region
           COGNITO_ISSUER: !Sub https://cognito-idp.${AWS::Region}.amazonaws.com/${CognitoUserPool}
-      Policies:
-        - AWSLambdaBasicExecutionRole
+      Tags:
+        Project: !Ref TagProject
+        Environment: !Ref TagEnvironment
 
   CognitoUserPool:
     Type: AWS::Cognito::UserPool
     Properties:
-      UserPoolName: cognito-user-pool
+      UserPoolName: serverless-workshop-pool
       Policies:
         PasswordPolicy:
           MinimumLength: 8
@@ -36,16 +48,8 @@ Resources:
     Type: AWS::Cognito::UserPoolClient
     Properties:
       UserPoolId: !Ref CognitoUserPool
-      ClientName: cognito-client
+      ClientName: serverless-workshop-pool-client
       GenerateSecret: false
       ExplicitAuthFlows:
         - ALLOW_USER_PASSWORD_AUTH
         - ALLOW_REFRESH_TOKEN_AUTH
-
-Outputs:
-  UserPoolId:
-    Description: Cognito User Pool ID
-    Value: !Ref CognitoUserPool
-  UserPoolClientId:
-    Description: Cognito User Pool Client ID
-    Value: !Ref CognitoUserPoolClient

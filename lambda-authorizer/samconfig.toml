@@ -5,4 +5,5 @@ resolve_s3 = true
 s3_prefix = "lambda-authorizer"
 region = "us-east-1"
 capabilities = "CAPABILITY_IAM"
+parameter_overrides = "TagEnvironment=\"production\" TagProject=\"devops-na-nuvem-serverless-workshop\""
 image_repositories = []

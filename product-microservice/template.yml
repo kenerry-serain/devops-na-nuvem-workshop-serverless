@@ -1,97 +1,85 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: AWS SAM template for Product Api
 
 Parameters:
-  TagEnvironment:
+  LambdaAuthorizerArn:
+    Type: String
+    Description: ARN for the lambda authorizer
+  TagEnvironment: 
     Type: String
     Default: production
-    Description: Environment Type
-  TagApplication:
+    Description: Environment Type.
+  TagProject:
     Type: String
-    Default: product
-    Description: Application Type
-  LambdaAuthorizerFunctionArn:
-    Type: String
-    Description: Lambda Authorizer Function ARN
+    Default: devops-na-nuvem-serverless-workshop
+    Description: Project Name.
 
 Resources:
 
   DynamoTable:
     Type: AWS::Serverless::SimpleTable
     Properties:
-      PointInTimeRecoverySpecification: 
+      TableName: products
+      PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       PrimaryKey:
         Name: Id
         Type: String
       SSESpecification:
         SSEEnabled: true
-      TableName: ProductsTable
       Tags:
+        Project: !Ref TagProject
         Environment: !Ref TagEnvironment
-        Application: !Ref TagApplication
 
-  ApiGateway:
+  ApiGatewayApi:
     Type: AWS::Serverless::Api
     Properties:
-      StageName: production 
+      StageName: production
       Auth:
         DefaultAuthorizer: LambdaAuthorizer
         Authorizers:
           LambdaAuthorizer:
-            FunctionArn: !Ref LambdaAuthorizerFunctionArn
-            IdentitySource: method.request.header.Authorization
-            Type: REQUEST
+            FunctionArn: !Ref LambdaAuthorizerArn
+            Identity:
+              Header: Authorization
+            Type: TOKEN
       Tags:
+        Project: !Ref TagProject
         Environment: !Ref TagEnvironment
-        Application: !Ref TagApplication
-
-  ApiGatewayBasePathMapping:
-    Type: AWS::ApiGateway::BasePathMapping
-    Properties:
-      BasePath: products
-      DomainName: backend.devopsnanuvemweek.com
-      RestApiId: !Ref ApiGateway
-      Stage: !Ref ApiGateway.Stage
 
   ApiFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: ProductApi
       Runtime: nodejs22.x
       Handler: handler.main
       Timeout: 30
+      Policies:
+      - AWSLambdaBasicExecutionRole
+      - AmazonDynamoDBFullAccess
       Environment:
         Variables:
           DYNAMO_TABLE_NAME: !Ref DynamoTable
-      Policies:
-        - AWSLambdaBasicExecutionRole
-        - AmazonDynamoDBFullAccess
       Events:
-        Products:
+        ProductsRoot:
           Type: Api
           Properties:
             Path: /products
             Method: ANY
-            RestApiId: !Ref ApiGateway
-        ProductsById:
+            RestApiId: !Ref ApiGatewayApi
+        ProductsAnythingElse:
           Type: Api
           Properties:
             Path: /products/{proxy+}
             Method: ANY
-            RestApiId: !Ref ApiGateway
+            RestApiId: !Ref ApiGatewayApi
       Tags:
+        Project: !Ref TagProject
         Environment: !Ref TagEnvironment
-        Application: !Ref TagApplication
 
-Outputs:
-  ApiUrl:
-    Description: "API Gateway endpoint URL for Prod environment"
-    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/production/products"
-  ApiFunction:
-    Description: "API Lambda Function ARN"
-    Value: !GetAtt ApiFunction.Arn
-  DynamoTable:
-    Description: "DynamoDB Table ARN"
-    Value: !GetAtt DynamoTable.Arn
+  ApiGatewayApiMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    Properties:
+      BasePath: products
+      DomainName: backend.devopsnanuvemweek.com
+      RestApiId: !Ref ApiGatewayApi
+      Stage: !Ref ApiGatewayApi.Stage

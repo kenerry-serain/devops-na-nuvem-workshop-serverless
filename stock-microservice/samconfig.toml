@@ -1,9 +1,9 @@
 version = 0.1
 [default.deploy.parameters]
-stack_name = "stock-microservice"
+stack_name = "stocks-microservice"
 resolve_s3 = true
-s3_prefix = "stock-microservice"
+s3_prefix = "stocks-microservice"
 region = "us-east-1"
 capabilities = "CAPABILITY_IAM"
-parameter_overrides = "LambdaAuthorizerFunctionArn=\"arn:aws:lambda:us-east-1:968225077300:function:LambdaAuthorizerFunction\" HostedZoneId=\"Z00743383VXA4QAJRZZWR\" CertificateArn=\"arn:aws:acm:us-east-1:968225077300:certificate/c161253e-c0d5-43de-ac79-10cd4819296d\" TagEnvironment=\"production\" TagApplication=\"stock\""
+parameter_overrides = "LambdaAuthorizerArn=\"arn:aws:lambda:us-east-1:968225077300:function:lambda-authorizer-ApiFunction-ChSGvdaJ8S0g\" CertificateArn=\"arn:aws:acm:us-east-1:968225077300:certificate/17cd99a1-047e-4cb1-b476-9eafb378e4ac\" HostedZoneId=\"Z00743383VXA4QAJRZZWR\" TagEnvironment=\"production\" TagProject=\"devops-na-nuvem-serverless-workshop\""
 image_repositories = []
