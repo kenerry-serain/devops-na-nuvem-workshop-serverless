@@ -5,12 +5,6 @@ Parameters:
   LambdaAuthorizerArn:
     Type: String
     Description: ARN for the lambda authorizer
-  CertificateArn:
-    Type: String
-    Description: ACM Certificate ARN
-  HostedZoneId:
-    Type: String
-    Description: Route53 Hosted Zone ID
   TagEnvironment: 
     Type: String
     Default: production
@@ -25,7 +19,7 @@ Resources:
   DynamoTable:
     Type: AWS::Serverless::SimpleTable
     Properties:
-      TableName: stocks
+      TableName: !Sub stocks-${TagEnvironment}
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       PrimaryKey:
@@ -40,6 +34,7 @@ Resources:
   ApiGatewayApi:
     Type: AWS::Serverless::Api
     Properties:
+      Name: !Sub stocks-api-${TagEnvironment}
       StageName: production
       Auth:
         DefaultAuthorizer: LambdaAuthorizer
@@ -53,37 +48,18 @@ Resources:
         Project: !Ref TagProject
         Environment: !Ref TagEnvironment
 
-  ApiGatewayDomain:
-    Type: AWS::ApiGateway::DomainName
-    Properties:
-      CertificateArn: !Ref CertificateArn
-      DomainName: backend.devopsnanuvemweek.com
-      SecurityPolicy: TLS_1_2
-      EndpointConfiguration:
-        Types:
-        - EDGE
-
-  ApiGatewayDomainMapping:
-    Type: AWS::Route53::RecordSet
-    Properties:
-      HostedZoneId: !Ref HostedZoneId
-      Name: backend.devopsnanuvemweek.com
-      Type: A
-      AliasTarget:
-        DNSName: !GetAtt ApiGatewayDomain.DistributionDomainName
-        HostedZoneId: !GetAtt ApiGatewayDomain.DistributionHostedZoneId
-
   ApiGatewayApiMapping:
     Type: AWS::ApiGateway::BasePathMapping
     Properties:
       BasePath: stocks
-      DomainName: !Ref ApiGatewayDomain
+      DomainName: !Sub backend-${TagEnvironment}.devopsnanuvemweek.com
       RestApiId: !Ref ApiGatewayApi
-      Stage: production
+      Stage: !Ref ApiGatewayApi.Stage
 
   ApiFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: !Sub stocks-lambda-function-${TagEnvironment}
       Runtime: dotnet8
       Handler: StockApi
       Timeout: 30

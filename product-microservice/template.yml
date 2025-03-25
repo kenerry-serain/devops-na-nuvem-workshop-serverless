@@ -19,7 +19,7 @@ Resources:
   DynamoTable:
     Type: AWS::Serverless::SimpleTable
     Properties:
-      TableName: products
+      TableName: !Sub products-${TagEnvironment}
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       PrimaryKey:
@@ -34,6 +34,7 @@ Resources:
   ApiGatewayApi:
     Type: AWS::Serverless::Api
     Properties:
+      Name: !Sub products-api-${TagEnvironment}
       StageName: production
       Auth:
         DefaultAuthorizer: LambdaAuthorizer
@@ -50,6 +51,7 @@ Resources:
   ApiFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: !Sub products-lambda-function-${TagEnvironment}
       Runtime: nodejs22.x
       Handler: handler.main
       Timeout: 30
@@ -80,6 +82,6 @@ Resources:
     Type: AWS::ApiGateway::BasePathMapping
     Properties:
       BasePath: products
-      DomainName: backend.devopsnanuvemweek.com
+      DomainName: !Sub backend-${TagEnvironment}.devopsnanuvemweek.com
       RestApiId: !Ref ApiGatewayApi
       Stage: !Ref ApiGatewayApi.Stage
