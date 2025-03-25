@@ -22,7 +22,7 @@ Resources:
   ApiFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FuntionName: !Sub authorizer-lambda-function-${TagEnvironment}
+      FunctionName: !Sub authorizer-lambda-function-${TagEnvironment}
       Runtime: python3.12
       Handler: authorizer.lambda_handler
       Timeout: 30
