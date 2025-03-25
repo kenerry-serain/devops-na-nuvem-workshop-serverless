@@ -132,6 +132,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: production
+    needs: [build-and-deploy-development]
     steps:
       - uses: actions/checkout@v3
 
