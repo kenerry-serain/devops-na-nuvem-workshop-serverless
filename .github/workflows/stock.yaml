@@ -1,4 +1,4 @@
-name: Product
+name: Stock
 
 on:
   workflow_dispatch:
