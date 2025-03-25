@@ -97,13 +97,13 @@ Resources:
         StocksRoot:
           Type: Api
           Properties:
-            Path: /stocks
+            Path: /
             Method: ANY
             RestApiId: !Ref ApiGatewayApi
         StocksAnythingElse:
           Type: Api
           Properties:
-            Path: /stocks/{proxy+}
+            Path: /{proxy+}
             Method: ANY
             RestApiId: !Ref ApiGatewayApi
       Tags:

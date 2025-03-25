@@ -63,13 +63,13 @@ Resources:
         ProductsRoot:
           Type: Api
           Properties:
-            Path: /products
+            Path: /
             Method: ANY
             RestApiId: !Ref ApiGatewayApi
         ProductsAnythingElse:
           Type: Api
           Properties:
-            Path: /products/{proxy+}
+            Path: /{proxy+}
             Method: ANY
             RestApiId: !Ref ApiGatewayApi
       Tags:
