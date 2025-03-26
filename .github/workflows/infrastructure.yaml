@@ -42,9 +42,11 @@ jobs:
           role-skip-session-tagging: true
 
       - name: Delete feature branch stack
+        env:
+          FEATURE_BRANCH_NAME: ${{ github.event.ref }}
         run: |
           sam delete \
-            --stack-name infrastructure-stack-$(echo ${GITHUB_REF} | tr '/' '-') \
+            --stack-name infrastructure-stack-$(echo ${FEATURE_BRANCH_NAME} | tr '/' '-') \
             --region ${{vars.DEVELOPMENT_REGION}} \
             --no-prompts
 
@@ -72,8 +74,10 @@ jobs:
 
       - name: Deploy to feature stack in the development account
         shell: bash
+        env:
+          FEATURE_BRANCH_NAME: ${{ github.event.ref }}
         run: |
-          sam deploy --stack-name infrastructure-stack-$(echo ${GITHUB_REF} | tr '/' '-') \
+          sam deploy --stack-name infrastructure-stack-$(echo ${FEATURE_BRANCH_NAME} | tr '/' '-') \
             --capabilities CAPABILITY_IAM \
             --region ${{vars.DEVELOPMENT_REGION}} \
             --s3-bucket ${{vars.DEVELOPMENT_ARTIFACTS_BUCKET}} \
@@ -85,7 +89,7 @@ jobs:
               CertificateArn=${{vars.CERTIFICATE_ARN}}
 
   build-and-deploy-development:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'delete'
     runs-on: ubuntu-latest
     environment: development
     steps:
