@@ -75,14 +75,14 @@ jobs:
       - name: Deploy to feature stack in the development account
         shell: bash
         run: |
-          sam deploy --stack-name infrastructure-stack-$(echo ${GITHUB_REF_NAME##*/} | tr '/' '-') \
+          sam deploy --stack-name infrastructure-stack-$(echo ${GITHUB_REF##*/} | tr '/' '-') \
             --capabilities CAPABILITY_IAM \
             --region ${{vars.DEVELOPMENT_REGION}} \
             --s3-bucket ${{vars.DEVELOPMENT_ARTIFACTS_BUCKET}} \
             --no-fail-on-empty-changeset \
             --role-arn ${{vars.DEVELOPMENT_CLOUDFORMATION_EXECUTION_ROLE}} \
             --parameter-overrides \
-              TagEnvironment=$(echo ${GITHUB_REF_NAME} | tr '/' '-') \
+              TagEnvironment=$(echo ${GITHUB_REF} | tr '/' '-') \
               HostedZoneId=${{vars.HOSTED_ZONE_ID}} \
               CertificateArn=${{vars.CERTIFICATE_ARN}}
 
