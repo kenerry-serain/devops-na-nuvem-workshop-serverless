@@ -87,7 +87,7 @@ jobs:
               CertificateArn=${{vars.CERTIFICATE_ARN}}
 
   build-and-deploy-development:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'delete'
     runs-on: ubuntu-latest
     environment: development
     steps:
