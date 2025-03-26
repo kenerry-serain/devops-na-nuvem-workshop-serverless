@@ -42,6 +42,8 @@ jobs:
           role-skip-session-tagging: true
 
       - name: Delete feature branch stack
+        env:
+          FEATURE_BRANCH: ${{ github.event.ref }}
         run: |
           sam delete \
             --stack-name stock-stack-$(echo ${GITHUB_REF} | tr '/' '-') \
