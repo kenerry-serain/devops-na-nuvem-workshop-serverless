@@ -46,7 +46,7 @@ jobs:
           FEATURE_BRANCH: ${{ github.event.ref }}
         run: |
           sam delete \
-            --stack-name product-stack-$(echo ${GITHUB_REF} | tr '/' '-') \
+            --stack-name product-stack-$(echo ${FEATURE_BRANCH} | tr '/' '-') \
             --region ${{vars.DEVELOPMENT_REGION}} \
             --no-prompts
 
@@ -74,15 +74,17 @@ jobs:
 
       - name: Deploy to feature stack in the development account
         shell: bash
+        env:
+          FEATURE_BRANCH: ${{ github.event.ref }}
         run: |
-          sam deploy --stack-name product-stack-$(echo ${GITHUB_REF} | tr '/' '-') \
+          sam deploy --stack-name product-stack-$(echo ${FEATURE_BRANCH} | tr '/' '-') \
             --capabilities CAPABILITY_IAM \
             --region ${{vars.DEVELOPMENT_REGION}} \
             --s3-bucket ${{vars.DEVELOPMENT_ARTIFACTS_BUCKET}} \
             --no-fail-on-empty-changeset \
             --role-arn ${{vars.DEVELOPMENT_CLOUDFORMATION_EXECUTION_ROLE}} \
             --parameter-overrides \
-              TagEnvironment=$(echo ${GITHUB_REF} | tr '/' '-') \
+              TagEnvironment=$(echo ${FEATURE_BRANCH} | tr '/' '-') \
               LambdaAuthorizerArn=${{vars.LAMBDA_AUTHORIZER_ARN}}
 
   build-and-deploy-development:
