@@ -46,7 +46,7 @@ jobs:
           FEATURE_BRANCH: ${{ github.event.ref }}
         run: |
           sam delete \
-            --stack-name infrastructure-stack-$(echo ${FEATURE_BRANCH} | tr '/' '-') \
+            --stack-name infrastructure-stack-$(echo ${FEATURE_BRANCH##*/} | tr '/' '-') \
             --region ${{vars.DEVELOPMENT_REGION}} \
             --no-prompts
 
@@ -75,7 +75,7 @@ jobs:
       - name: Deploy to feature stack in the development account
         shell: bash
         run: |
-          sam deploy --stack-name infrastructure-stack-$(echo ${GITHUB_REF_NAME} | tr '/' '-') \
+          sam deploy --stack-name infrastructure-stack-$(echo ${GITHUB_REF_NAME##*/} | tr '/' '-') \
             --capabilities CAPABILITY_IAM \
             --region ${{vars.DEVELOPMENT_REGION}} \
             --s3-bucket ${{vars.DEVELOPMENT_ARTIFACTS_BUCKET}} \

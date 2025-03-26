@@ -46,7 +46,7 @@ jobs:
           FEATURE_BRANCH: ${{ github.event.ref }}
         run: |
           sam delete \
-            --stack-name stock-stack-$(echo ${FEATURE_BRANCH} | tr '/' '-') \
+            --stack-name stock-stack-$(echo ${FEATURE_BRANCH##*/} | tr '/' '-') \
             --region ${{vars.DEVELOPMENT_REGION}} \
             --no-prompts
 
