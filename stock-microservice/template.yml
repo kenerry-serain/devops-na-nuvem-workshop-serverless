@@ -1,41 +1,43 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-
 Parameters:
-  LambdaAuthorizerArn:
-    Type: String
-    Description: ARN for the lambda authorizer
-  TagEnvironment: 
+  TagEnvironment:
     Type: String
     Default: production
-    Description: Environment Type.
   TagProject:
     Type: String
-    Default: devops-na-nuvem-serverless-workshop
-    Description: Project Name.
+    Default: devops-na-nuvem
+  LambdaAuthorizerArn:
+    Type: String
 
 Resources:
 
-  DynamoTable:
+  DynamoDBTable:
     Type: AWS::Serverless::SimpleTable
     Properties:
-      TableName: !Sub stocks-${TagEnvironment}
+      TableName: !Sub serverless-workshop-table-stock-${TagEnvironment}
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       PrimaryKey:
         Name: Id
         Type: String
-      SSESpecification:
-        SSEEnabled: true
       Tags:
-        Project: !Ref TagProject
         Environment: !Ref TagEnvironment
+        Project: !Ref TagProject
 
+  ApiGatewayPathMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    Properties:
+      BasePath: stocks
+      DomainName: backend.devopsnanuvem.com
+      RestApiId: !Ref ApiGatewayApi
+      Stage: !Ref ApiGatewayApi.Stage
+      
   ApiGatewayApi:
     Type: AWS::Serverless::Api
     Properties:
-      Name: !Sub stocks-api-${TagEnvironment}
-      StageName: production
+      Name: !Sub serverless-workshop-api-stock-${TagEnvironment}
+      StageName: prod
       Auth:
         DefaultAuthorizer: LambdaAuthorizer
         Authorizers:
@@ -43,45 +45,39 @@ Resources:
             FunctionArn: !Ref LambdaAuthorizerArn
             Identity:
               Header: Authorization
-            Type: REQUEST
+            Type: TOKEN
       Tags:
-        Project: !Ref TagProject
         Environment: !Ref TagEnvironment
-
-  ApiGatewayApiMapping:
-    Type: AWS::ApiGateway::BasePathMapping
-    Properties:
-      BasePath: stocks
-      DomainName: !Sub backend-${TagEnvironment}.devopsnanuvemweek.com
-      RestApiId: !Ref ApiGatewayApi
-      Stage: !Ref ApiGatewayApi.Stage
+        Project: !Ref TagProject
 
   ApiFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub stocks-lambda-function-${TagEnvironment}
+      FunctionName: !Sub serverless-workshop-api-stock-${TagEnvironment}
       Runtime: dotnet8
       Handler: StockApi
       Timeout: 30
       Policies:
-      - AWSLambdaBasicExecutionRole
-      - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
       Environment:
         Variables:
-          DYNAMO_TABLE_NAME: !Ref DynamoTable
+          DYNAMO_TABLE_NAME: !Ref DynamoDBTable
       Events:
-        StocksRoot:
+        StockRootPath:
           Type: Api
           Properties:
             Path: /
             Method: ANY
-            RestApiId: !Ref ApiGatewayApi
-        StocksAnythingElse:
+            RestApiId:
+              Ref: ApiGatewayApi
+        StockAnythingElsePath:
           Type: Api
           Properties:
             Path: /{proxy+}
             Method: ANY
-            RestApiId: !Ref ApiGatewayApi
+            RestApiId:
+              Ref: ApiGatewayApi
       Tags:
-        Project: !Ref TagProject
         Environment: !Ref TagEnvironment
+        Project: !Ref TagProject

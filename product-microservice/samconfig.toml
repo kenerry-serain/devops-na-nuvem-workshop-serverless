@@ -1,9 +1,9 @@
 version = 0.1
 [default.deploy.parameters]
-stack_name = "products-microservice"
+stack_name = "product-app"
 resolve_s3 = true
-s3_prefix = "products-microservice"
-region = "us-east-1"
+s3_prefix = "product-app"
+region = "us-west-1"
 capabilities = "CAPABILITY_IAM"
-parameter_overrides = "LambdaAuthorizerArn=\"arn:aws:lambda:us-east-1:968225077300:function:lambda-authorizer-ApiFunction-ChSGvdaJ8S0g\" TagEnvironment=\"production\" TagProject=\"devops-na-nuvem-serverless-workshop\""
+parameter_overrides = "TagEnvironment=\"production\" TagProject=\"devops-na-nuvem\" LambdaAuthorizerArn=\"arn:aws:lambda:us-west-1:968225077300:function:serverless-workshop-lambda-authorizer-production\""
 image_repositories = []

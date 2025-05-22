@@ -1,41 +1,43 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-
 Parameters:
-  LambdaAuthorizerArn:
-    Type: String
-    Description: ARN for the lambda authorizer
-  TagEnvironment: 
+  TagEnvironment:
     Type: String
     Default: production
-    Description: Environment Type.
   TagProject:
     Type: String
-    Default: devops-na-nuvem-serverless-workshop
-    Description: Project Name.
+    Default: devops-na-nuvem
+  LambdaAuthorizerArn:
+    Type: String
 
 Resources:
 
-  DynamoTable:
+  DynamoDBTable:
     Type: AWS::Serverless::SimpleTable
     Properties:
-      TableName: !Sub products-${TagEnvironment}
+      TableName: !Sub serverless-workshop-table-${TagEnvironment}
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       PrimaryKey:
         Name: Id
         Type: String
-      SSESpecification:
-        SSEEnabled: true
       Tags:
-        Project: !Ref TagProject
         Environment: !Ref TagEnvironment
+        Project: !Ref TagProject
 
+  ApiGatewayPathMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    Properties:
+      BasePath: products
+      DomainName: backend.devopsnanuvem.com
+      RestApiId: !Ref ApiGatewayApi
+      Stage: !Ref ApiGatewayApi.Stage
+      
   ApiGatewayApi:
     Type: AWS::Serverless::Api
     Properties:
-      Name: !Sub products-api-${TagEnvironment}
-      StageName: production
+      Name: !Sub serverless-workshop-api-${TagEnvironment}
+      StageName: prod
       Auth:
         DefaultAuthorizer: LambdaAuthorizer
         Authorizers:
@@ -45,43 +47,37 @@ Resources:
               Header: Authorization
             Type: TOKEN
       Tags:
-        Project: !Ref TagProject
         Environment: !Ref TagEnvironment
+        Project: !Ref TagProject
 
   ApiFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub products-lambda-function-${TagEnvironment}
+      FunctionName: !Sub serverless-workshop-api-${TagEnvironment}
       Runtime: nodejs22.x
       Handler: handler.main
       Timeout: 30
       Policies:
-      - AWSLambdaBasicExecutionRole
-      - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
       Environment:
         Variables:
-          DYNAMO_TABLE_NAME: !Ref DynamoTable
+          DYNAMO_TABLE_NAME: !Ref DynamoDBTable
       Events:
-        ProductsRoot:
+        ProductRootPath:
           Type: Api
           Properties:
             Path: /
             Method: ANY
-            RestApiId: !Ref ApiGatewayApi
-        ProductsAnythingElse:
+            RestApiId:
+              Ref: ApiGatewayApi
+        ProductAnythingElsePath:
           Type: Api
           Properties:
             Path: /{proxy+}
             Method: ANY
-            RestApiId: !Ref ApiGatewayApi
+            RestApiId:
+              Ref: ApiGatewayApi
       Tags:
-        Project: !Ref TagProject
         Environment: !Ref TagEnvironment
-
-  ApiGatewayApiMapping:
-    Type: AWS::ApiGateway::BasePathMapping
-    Properties:
-      BasePath: products
-      DomainName: !Sub backend-${TagEnvironment}.devopsnanuvemweek.com
-      RestApiId: !Ref ApiGatewayApi
-      Stage: !Ref ApiGatewayApi.Stage
+        Project: !Ref TagProject

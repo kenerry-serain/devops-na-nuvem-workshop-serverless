@@ -1,46 +1,37 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-
 Parameters:
-  CertificateArn:
-    Type: String
-    Description: ACM Certificate ARN
-  HostedZoneId:
-    Type: String
-    Description: Route53 Hosted Zone ID
-  TagEnvironment: 
+  TagEnvironment:
     Type: String
     Default: production
-    Description: Environment Type.
   TagProject:
     Type: String
-    Default: devops-na-nuvem-serverless-workshop
-    Description: Project Name.
+    Default: devops-na-nuvem
+  CertificateArn:
+    Type: String
+  HostedZoneId:
+    Type: String
 
 Resources:
-
   ApiFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub authorizer-lambda-function-${TagEnvironment}
+      FunctionName: !Sub serverless-workshop-lambda-authorizer-${TagEnvironment}
       Runtime: python3.12
       Handler: authorizer.lambda_handler
       Timeout: 30
-      Policies:
-      - AWSLambdaBasicExecutionRole
       Environment:
         Variables:
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           COGNITO_REGION: !Ref AWS::Region
-          COGNITO_ISSUER: !Sub https://cognito-idp.${AWS::Region}.amazonaws.com/${CognitoUserPool}
       Tags:
-        Project: !Ref TagProject
         Environment: !Ref TagEnvironment
+        Project: !Ref TagProject
 
   CognitoUserPool:
     Type: AWS::Cognito::UserPool
     Properties:
-      UserPoolName: !Sub serverless-workshop-pool-${TagEnvironment}
+      UserPoolName: !Sub serverless-workshop-user-pool-${TagEnvironment}
       Policies:
         PasswordPolicy:
           MinimumLength: 8
@@ -55,28 +46,28 @@ Resources:
     Type: AWS::Cognito::UserPoolClient
     Properties:
       UserPoolId: !Ref CognitoUserPool
-      ClientName: !Sub serverless-workshop-pool-client-${TagEnvironment}
+      ClientName: !Sub serverless-workshop-user-pool-client-${TagEnvironment}
       GenerateSecret: false
       ExplicitAuthFlows:
         - ALLOW_USER_PASSWORD_AUTH
         - ALLOW_REFRESH_TOKEN_AUTH
-
-  ApiGatewayDomain:
+  
+  CustomDomainName:
     Type: AWS::ApiGateway::DomainName
     Properties:
       CertificateArn: !Ref CertificateArn
-      DomainName: !Sub backend-${TagEnvironment}.devopsnanuvemweek.com
-      SecurityPolicy: TLS_1_2
-      EndpointConfiguration:
+      DomainName: backend.devopsnanuvem.com
+      EndpointConfiguration: 
         Types:
-        - EDGE
+          - EDGE
+      SecurityPolicy: TLS_1_2
 
-  ApiGatewayDomainMapping:
+  Route53RecordSet:
     Type: AWS::Route53::RecordSet
     Properties:
-      HostedZoneId: !Ref HostedZoneId
-      Name: !Sub backend-${TagEnvironment}.devopsnanuvemweek.com
-      Type: A
       AliasTarget:
-        DNSName: !GetAtt ApiGatewayDomain.DistributionDomainName
-        HostedZoneId: !GetAtt ApiGatewayDomain.DistributionHostedZoneId
+        DNSName: !GetAtt CustomDomainName.DistributionDomainName
+        HostedZoneId: !GetAtt CustomDomainName.DistributionHostedZoneId
+      HostedZoneId: !Ref HostedZoneId
+      Name: backend.devopsnanuvem.com
+      Type: A

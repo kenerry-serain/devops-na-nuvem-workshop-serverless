@@ -1,9 +1,9 @@
 version = 0.1
 [default.deploy.parameters]
-stack_name = "lambda-authorizer"
+stack_name = "infrastructure-app"
 resolve_s3 = true
-s3_prefix = "lambda-authorizer"
-region = "us-east-1"
+s3_prefix = "infrastructure-app"
+region = "us-west-1"
 capabilities = "CAPABILITY_IAM"
-parameter_overrides = "TagEnvironment=\"production\" TagProject=\"devops-na-nuvem-serverless-workshop\""
+parameter_overrides = "TagEnvironment=\"production\" TagProject=\"devops-na-nuvem\" CertificateArn=\"arn:aws:acm:us-east-1:968225077300:certificate/313a394d-72ab-449b-bac6-44d1dc1e5b52\" HostedZoneId=\"Z015381330GWBP8478NF9\""
 image_repositories = []
