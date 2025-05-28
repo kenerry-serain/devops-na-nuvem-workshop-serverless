@@ -29,7 +29,7 @@ Resources:
     Type: AWS::ApiGateway::BasePathMapping
     Properties:
       BasePath: products
-      DomainName: backend.devopsnanuvemweek.com
+      DomainName: !Sub backend-${TagEnvironment}.devopsnanuvemweek.com
       RestApiId: !Ref ApiGatewayApi
       Stage: !Ref ApiGatewayApi.Stage
       

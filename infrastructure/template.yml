@@ -56,7 +56,7 @@ Resources:
     Type: AWS::ApiGateway::DomainName
     Properties:
       CertificateArn: !Ref CertificateArn
-      DomainName: backend.devopsnanuvem.com
+      DomainName: !Sub backend-${TagEnvironment}.devopsnanuvemweek.com
       EndpointConfiguration: 
         Types:
           - EDGE
@@ -69,5 +69,5 @@ Resources:
         DNSName: !GetAtt CustomDomainName.DistributionDomainName
         HostedZoneId: !GetAtt CustomDomainName.DistributionHostedZoneId
       HostedZoneId: !Ref HostedZoneId
-      Name: backend.devopsnanuvem.com
+      Name: !Sub backend-${TagEnvironment}.devopsnanuvemweek.com
       Type: A
