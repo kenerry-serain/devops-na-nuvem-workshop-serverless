@@ -28,5 +28,5 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
-
+app.MapGet("/health", () => "The API is healthy!");
 app.Run();

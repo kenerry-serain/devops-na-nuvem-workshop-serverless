@@ -29,7 +29,7 @@ Resources:
     Type: AWS::ApiGateway::BasePathMapping
     Properties:
       BasePath: stocks
-      DomainName: backend.devopsnanuvem.com
+      DomainName: backend.devopsnanuvemweek.com
       RestApiId: !Ref ApiGatewayApi
       Stage: !Ref ApiGatewayApi.Stage
       
