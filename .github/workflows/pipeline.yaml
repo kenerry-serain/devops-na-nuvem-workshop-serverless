@@ -44,7 +44,7 @@ jobs:
           role-skip-session-tagging: true
 
       - name: Build resources
-        run: sam build --template ${SAM_TEMPLATE} --use-container
+        run: sam build --template ${{env.SAM_TEMPLATE}} --use-container
 
       - name: Upload artifacts to development artifact buckets
         run: |
@@ -55,7 +55,7 @@ jobs:
 
       - name: Deploy to development account
         run: |
-          sam deploy --stack-name ${DEVELOPMENT_STACK_NAME} \
+          sam deploy --stack-name ${{env.DEVELOPMENT_STACK_NAME}} \
             --template packaged-development.yaml \
             --capabilities CAPABILITY_IAM \
             --region ${{vars.AWS_REGION}} \
