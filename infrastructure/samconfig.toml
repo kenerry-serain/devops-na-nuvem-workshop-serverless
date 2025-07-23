@@ -1,9 +1,0 @@
-version = 0.1
-[default.deploy.parameters]
-stack_name = "infrastructure-stack"
-resolve_s3 = true
-s3_prefix = "infrastructure-stack"
-region = "us-west-1"
-capabilities = "CAPABILITY_IAM"
-parameter_overrides = "TagEnvironment=\"dev\" TagProject=\"devops-na-nuvem\" CertificateArn=\"arn:aws:acm:us-east-1:968225077300:certificate/6e159713-1546-419d-9db1-71dbd5f03fe8\""
-image_repositories = []
