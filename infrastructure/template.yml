@@ -3,23 +3,24 @@ Transform: AWS::Serverless-2016-10-31
 Parameters:
   TagEnvironment:
     Type: String
-    Default: production
   TagProject:
     Type: String
-    Default: devops-na-nuvem
   CertificateArn:
     Type: String
   HostedZoneId:
     Type: String
 
 Resources:
-  ApiFunction:
+
+  LambdaAuthorizerFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub serverless-workshop-lambda-authorizer-${TagEnvironment}
       Runtime: python3.12
-      Handler: authorizer.lambda_handler
       Timeout: 30
+      Handler: authorizer.lambda_handler
+      Policies:
+      - AWSLambdaBasicExecutionRole
       Environment:
         Variables:
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
@@ -31,7 +32,7 @@ Resources:
   CognitoUserPool:
     Type: AWS::Cognito::UserPool
     Properties:
-      UserPoolName: !Sub serverless-workshop-user-pool-${TagEnvironment}
+      UserPoolName: !Sub serverless-workshop-cognito-user-pool-${TagEnvironment}
       Policies:
         PasswordPolicy:
           MinimumLength: 8
@@ -46,28 +47,28 @@ Resources:
     Type: AWS::Cognito::UserPoolClient
     Properties:
       UserPoolId: !Ref CognitoUserPool
-      ClientName: !Sub serverless-workshop-user-pool-client-${TagEnvironment}
+      ClientName: !Sub serverless-workshop-cognito-user-pool-client-${TagEnvironment}
       GenerateSecret: false
       ExplicitAuthFlows:
         - ALLOW_USER_PASSWORD_AUTH
         - ALLOW_REFRESH_TOKEN_AUTH
-  
-  CustomDomainName:
+
+  CustomDomainAlias:
     Type: AWS::ApiGateway::DomainName
     Properties:
       CertificateArn: !Ref CertificateArn
-      DomainName: !Sub backend-${TagEnvironment}.devopsnanuvemweek.com
+      DomainName: !Sub backend-${TagEnvironment}.devopsnanuvem.com
       EndpointConfiguration: 
-        Types:
-          - EDGE
+        Types: 
+        - EDGE
       SecurityPolicy: TLS_1_2
-
-  Route53RecordSet:
+  
+  CustomDomainRecordRoute53:
     Type: AWS::Route53::RecordSet
     Properties:
-      AliasTarget:
-        DNSName: !GetAtt CustomDomainName.DistributionDomainName
-        HostedZoneId: !GetAtt CustomDomainName.DistributionHostedZoneId
+      AliasTarget: 
+        DNSName: !GetAtt CustomDomainAlias.DistributionDomainName
+        HostedZoneId: !GetAtt CustomDomainAlias.DistributionHostedZoneId
       HostedZoneId: !Ref HostedZoneId
-      Name: !Sub backend-${TagEnvironment}.devopsnanuvemweek.com
+      Name: !Sub backend-${TagEnvironment}.devopsnanuvem.com
       Type: A

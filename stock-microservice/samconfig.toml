@@ -1,0 +1,9 @@
+version = 0.1
+[default.deploy.parameters]
+stack_name = "stock-stack"
+resolve_s3 = true
+s3_prefix = "stock-stack"
+region = "us-west-1"
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "TagEnvironment=\"dev\" TagProject=\"devops-na-nuvem\" LambdaAuthorizerFunctionArn=\"arn:aws:lambda:us-west-1:968225077300:function:serverless-workshop-lambda-authorizer-dev\""
+image_repositories = []
