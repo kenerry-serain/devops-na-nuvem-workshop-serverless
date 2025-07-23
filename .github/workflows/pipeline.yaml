@@ -61,7 +61,7 @@ jobs:
             --region ${{vars.AWS_REGION}} \
             --s3-bucket ${{vars.ARTIFACTS_BUCKET}} \
             --no-fail-on-empty-changeset \
-            --role-arn ${{vars.CLOUDFORMATION_EXECUTION_ROLE}}
+            --role-arn ${{vars.CLOUDFORMATION_EXECUTION_ROLE}} \
             --parameter-overrides \
               TagEnvironment=development \
               TagProject=serverless-workshop \
